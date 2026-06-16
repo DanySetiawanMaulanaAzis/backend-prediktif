@@ -1,0 +1,6 @@
+@prediktif_HostAddress = http://localhost:5038
+
+GET {{prediktif_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
