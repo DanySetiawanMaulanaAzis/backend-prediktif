@@ -45,7 +45,21 @@ namespace prediktif.Repositories
             });
         }
 
-        public async Task<int> Create(User user)
+        public async Task<User> GetByNameAndPassword(string name, string password)
+        {
+            using var db = Connection;
+
+            string sql = @"SELECT * FROM Users
+                           WHERE Name = @Name AND Password = @Password";
+
+            return await db.QueryFirstOrDefaultAsync<User>(sql, new
+            {
+                Name = name,
+                Password = password
+            });
+        }
+
+        public async Task<int> Create(CreateUserRequest user)
         {
             using var db = Connection;
 
@@ -70,7 +84,7 @@ namespace prediktif.Repositories
             return await db.ExecuteAsync(sql, user);
         }
 
-        public async Task<int> Update(User user)
+        public async Task<int> Update(UpdateUserRequest user)
         {
             using var db = Connection;
 
