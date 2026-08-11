@@ -8,9 +8,11 @@ namespace prediktif.Interfaces
 
         Task<User> GetById(int id);
 
-        Task<int> Create(User user);
+        Task<User> GetByNameAndPassword(string name, string password);
 
-        Task<int> Update(User user);
+        Task<int> Create(CreateUserRequest user);
+
+        Task<int> Update(UpdateUserRequest user);
 
         Task<int> Delete(int id);
     }
