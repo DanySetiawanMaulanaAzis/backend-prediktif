@@ -11,12 +11,20 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IUsersRepository, UsersRepository>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 
-// Configure CORS
+// Configure CORS. Origins come from configuration (Cors:Origins, or the
+// Cors__Origins__0 / __1 env vars that docker-compose sets); the localhost pair
+// is the fallback for `dotnet run`.
+var corsOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>();
+if (corsOrigins is null || corsOrigins.Length == 0)
+{
+    corsOrigins = new[] { "http://localhost:4200", "http://localhost:4300" };
+}
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:4200", "http://localhost:4300")
+        policy.WithOrigins(corsOrigins)
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
@@ -61,12 +69,21 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// Skip HTTPS redirection when the app is served over plain HTTP only
+// (containers set ASPNETCORE_HTTPS_REDIRECT=false).
+if (!string.Equals(
+        builder.Configuration["ASPNETCORE_HTTPS_REDIRECT"], "false",
+        StringComparison.OrdinalIgnoreCase))
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
 app.MapControllers();
 
